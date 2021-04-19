@@ -33,8 +33,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("youtube_url",
     help="full url for a youtube video, like "
     "https://www.youtube.com/watch?v=69V__a49xtw")
+parser.add_argument("--colab", help="for running in Google Colab")
 args = parser.parse_args()
 youtube_url = args.youtube_url
+colab = args.colab
 
 # Change this variable to change how many frames per second of the YouTube
 # video will be analyzed by the computer vision model
@@ -136,7 +138,8 @@ for c in classes_sorted:
     class_num_frames.append(round(100*c[1]/num_frames, 2))
 
 # Plot some stuff with matplotlib ---------------------------------------------
-# matplotlib.use("TkAgg")
+if not colab:
+    matplotlib.use("TkAgg")
 plt.barh(class_names[::-1], class_num_frames[::-1], align='center')
 plt.xlabel("How much it's in the video, in percent")
 plt.xlim([0, 100])
@@ -144,6 +147,8 @@ plt.title("What's in this YouTube video?")
 for i, v in enumerate(class_num_frames[::-1]):
     plt.text(v, i, str(v))
 plt.show()
+if colab:
+    plt.savefig('figure.jpg')
 # -----------------------------------------------------------------------------
 
 # Remove/delete the temp directory
