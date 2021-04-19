@@ -33,7 +33,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("youtube_url",
     help="full url for a youtube video, like "
     "https://www.youtube.com/watch?v=69V__a49xtw")
-parser.add_argument("--colab", help="for running in Google Colab")
+parser.add_argument("--colab", help="for running in Google Colab",
+    action="store_true")
 args = parser.parse_args()
 youtube_url = args.youtube_url
 colab = args.colab
