@@ -100,9 +100,11 @@ results = model(images, size=320)
 
 classes_dict = {}
 
+panda = results.pandas().xyxy
+
 for i in range(num_frames):
     print(i)
-    classes = set(results.pandas().xyxy[i].name)
+    classes = set(panda[i].name)
     for c in classes:
         if c not in classes_dict:
             classes_dict[c] = 1
@@ -110,7 +112,7 @@ for i in range(num_frames):
             classes_dict[c] += 1
 # -----------------------------------------------------------------------------
 
-classes_sorted = sorted(x.items(), key=lambda item: item[1])
+classes_sorted = sorted(classes_dict.items(), key=lambda item: item[1])
 
 print(f"YouTube video was {video_duration_sec} seconds long\n")
 print(f"Analyzed roughly {how_many_frames_per_second} frames every \
