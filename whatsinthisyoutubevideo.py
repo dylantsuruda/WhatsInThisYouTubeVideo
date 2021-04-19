@@ -136,7 +136,7 @@ for c in classes_sorted:
     class_num_frames.append(round(100*c[1]/num_frames, 2))
 
 # Plot some stuff with matplotlib ---------------------------------------------
-matplotlib.use("TkAgg")
+# matplotlib.use("TkAgg")
 plt.barh(class_names[::-1], class_num_frames[::-1], align='center')
 plt.xlabel("How much it's in the video, in percent")
 plt.xlim([0, 100])
