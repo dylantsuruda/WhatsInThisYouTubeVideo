@@ -13,10 +13,16 @@ import cv2
 # explanation
 import torch
 
+# matplotlib (https://github.com/matplotlib/matplotlib)
+import matplotlib
+import matplotlib.pyplot as plt
+
 # Standard Python libraries
 import argparse
 import os
 import shutil
+import contextlib
+import sys
 
 # =============================================================================
 
@@ -25,14 +31,14 @@ import shutil
 
 parser = argparse.ArgumentParser()
 parser.add_argument("youtube_url",
-    help="full url for a youtube video, like \
-    https://www.youtube.com/watch?v=69V__a49xtw")
+    help="full url for a youtube video, like "
+    "https://www.youtube.com/watch?v=69V__a49xtw")
 args = parser.parse_args()
 youtube_url = args.youtube_url
 
 # Change this variable to change how many frames per second of the YouTube
 # video will be analyzed by the computer vision model
-how_many_frames_per_second = 3
+how_many_frames_per_second = 6
 
 # All files created in this program will be in temp directory
 # (The temp directory gets deleted at the end of the program)
@@ -89,8 +95,11 @@ cv2.destroyAllWindows()
 num_frames = image_count - 1
 
 # Run yolov5 on the images ----------------------------------------------------
-model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
-model.conf = 0.7
+with open(os.path.join(temp_dir, "trash"), 'w') as f:
+    with contextlib.redirect_stdout(f):
+        with contextlib.redirect_stderr(f):
+            model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+            model.conf = 0.7
 
 images = []
 for filename in os.listdir(temp_images_dir):
@@ -103,7 +112,6 @@ classes_dict = {}
 panda = results.pandas().xyxy
 
 for i in range(num_frames):
-    print(i)
     classes = set(panda[i].name)
     for c in classes:
         if c not in classes_dict:
@@ -112,15 +120,31 @@ for i in range(num_frames):
             classes_dict[c] += 1
 # -----------------------------------------------------------------------------
 
-classes_sorted = sorted(classes_dict.items(), key=lambda item: item[1])
+classes_sorted = sorted(classes_dict.items(), key=lambda item: item[1],
+    reverse=True)
+class_names = []
+class_num_frames = []
 
-print(f"YouTube video was {video_duration_sec} seconds long\n")
-print(f"Analyzed roughly {how_many_frames_per_second} frames every \
-    second (for a total of {num_frames} frames)\n\n")
-print("Here's what's in this YouTube video:\n")
+print(f"YouTube video was {video_duration_sec} seconds long")
+print(f"For every second of video, roughly {how_many_frames_per_second} "
+    f"frames were analyzed (for a total of {num_frames} frames)\n")
+print("Here's what's in this YouTube video:")
 for c in classes_sorted:
-    print(f"A {c[0]} in {c[1]} of {num_frames} frames or \
-        {round(100*c[1]/num_frames)}% of the video")
+    print(f"A {c[0]} in {c[1]} of {num_frames} frames or "
+        f"{round(100*c[1]/num_frames, 2)}% of the video")
+    class_names.append(c[0].capitalize())
+    class_num_frames.append(round(100*c[1]/num_frames, 2))
+
+# Plot some stuff with matplotlib ---------------------------------------------
+matplotlib.use("TkAgg")
+plt.barh(class_names[::-1], class_num_frames[::-1], align='center')
+plt.xlabel("How much it's in the video, in percent")
+plt.xlim([0, 100])
+plt.title("What's in this YouTube video?")
+for i, v in enumerate(class_num_frames[::-1]):
+    plt.text(v, i, str(v))
+plt.show()
+# -----------------------------------------------------------------------------
 
 # Remove/delete the temp directory
 shutil.rmtree(temp_dir)
